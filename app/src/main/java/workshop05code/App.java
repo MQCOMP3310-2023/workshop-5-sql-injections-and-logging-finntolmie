@@ -39,13 +39,16 @@ public class App {
         wordleDatabaseConnection.createNewDatabase("words.db");
         if (wordleDatabaseConnection.checkIfConnectionDefined()) {
             System.out.println("Wordle created and connected.");
+            logger.log(Level.INFO, "New game started.");
         } else {
+            logger.log(Level.SEVERE, "Unable to connect.");
             System.out.println("Not able to connect. Sorry!");
             return;
         }
         if (wordleDatabaseConnection.createWordleTables()) {
-            System.out.println("Wordle structures in place.");
+            logger.log(Level.INFO, "Wordle structures in place.");
         } else {
+            logger.log(Level.SEVERE, "Unable to launch.");
             System.out.println("Not able to launch. Sorry!");
             return;
         }
@@ -61,7 +64,6 @@ public class App {
             }
 
         } catch (IOException e) {
-            System.out.println("Not able to load. Sorry!");
             logger.log(Level.SEVERE, "Unable to load: {0}", e.getMessage());
             return;
         }

@@ -65,12 +65,12 @@ public class SQLiteConnectionManager {
         try (Connection conn = DriverManager.getConnection(databaseURL)) {
             if (conn != null) {
                 DatabaseMetaData meta = conn.getMetaData();
-                System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created.");
+                logger.log(Level.INFO, "The driver name is {0}", meta.getDriverName());
+                logger.log(Level.INFO, "A new database has been created");
 
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Invalid SQL", e);
         }
     }
 
@@ -89,7 +89,7 @@ public class SQLiteConnectionManager {
                     return true;
                 }
             } catch (SQLException e) {
-                System.out.println(e.getMessage());
+                logger.log(Level.SEVERE, "Invalid SQL", e);
                 return false;
             }
         }
@@ -114,7 +114,7 @@ public class SQLiteConnectionManager {
                 return true;
 
             } catch (SQLException e) {
-                System.out.println(e.getMessage());
+                logger.log(Level.SEVERE, "Invalid SQL", e);
                 return false;
             }
         }
@@ -127,16 +127,19 @@ public class SQLiteConnectionManager {
      * @param word the word to store
      */
     public void addValidWord(int id, String word) {
-
         String sql = "INSERT INTO validWords(id,word) VALUES(?,?)";
-
+        if (!word.matches("[a-z]{4}")) {
+            logger.log(Level.SEVERE, "Unacceptable DB input: {0}", word);
+            return;
+        }
         try (Connection conn = DriverManager.getConnection(databaseURL);
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             pstmt.setString(2, word);
             pstmt.executeUpdate();
+            logger.log(Level.INFO, "Valid word added to DB: {0}", word);
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Invalid SQL", e);
         }
 
     }
@@ -149,7 +152,10 @@ public class SQLiteConnectionManager {
      */
     public boolean isValidWord(String guess) {
         String sql = "SELECT count(id) as total FROM validWords WHERE word like ?;";
-
+        if (!guess.matches("[a-z]{4}")) {
+            logger.log(Level.WARNING, "Invalid guess: {0}", guess);
+            return false;
+        }
         try (Connection conn = DriverManager.getConnection(databaseURL);
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, guess);
@@ -162,7 +168,7 @@ public class SQLiteConnectionManager {
             return false;
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Invalid SQL", e);
             return false;
         }
 
